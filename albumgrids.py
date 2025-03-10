@@ -73,7 +73,7 @@ def download_image(url):
     return Image.open(BytesIO(response.content))
 
 def create_normal_grid(images, grid_size):
-    cell_size = 100
+    cell_size = 64
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     for idx, img in enumerate(images):
         row = idx // grid_size
@@ -83,7 +83,7 @@ def create_normal_grid(images, grid_size):
     return grid_img
 
 def create_diagonal_grid(images, grid_size):
-    cell_size = 100
+    cell_size = 64
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     idx = 0
     for diag in range(2 * grid_size - 1):
@@ -96,7 +96,7 @@ def create_diagonal_grid(images, grid_size):
     return grid_img
 
 def create_checkered_grid(images, grid_size):
-    cell_size = 100
+    cell_size = 64
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     for idx, img in enumerate(images):
         row = idx // grid_size
@@ -107,7 +107,7 @@ def create_checkered_grid(images, grid_size):
     return grid_img
 
 def create_spiral_grid(images, grid_size):
-    cell_size = 100
+    cell_size = 64
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     direction_idx = 0
