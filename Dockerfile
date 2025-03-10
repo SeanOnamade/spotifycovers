@@ -19,4 +19,4 @@ EXPOSE 8000
 
 # The command to run your Flask app. 
 # Railway will set PORT as an environment variable. We default to 8000 if not set.
-CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=${PORT:-8000}"]
+CMD python -m flask run --host=0.0.0.0 --port=$PORT
