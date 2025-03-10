@@ -138,6 +138,8 @@ def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False
     :param pattern: one of ['normal','diagonal','spiral','checkered']
     :return: A PIL Image object with the final collage
     """
+    MAX_COVERS = 300
+    album_urls = album_urls[:MAX_COVERS]
     if mode == 'playlist':
         tracks = fetch_playlist_tracks(sp, playlist_id)
     else:  # 'top'
