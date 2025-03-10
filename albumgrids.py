@@ -73,7 +73,7 @@ def download_image(url):
     return Image.open(BytesIO(response.content))
 
 def create_normal_grid(images, grid_size):
-    cell_size = 100
+    cell_size = 100 # 64?
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     for idx, img in enumerate(images):
         row = idx // grid_size
