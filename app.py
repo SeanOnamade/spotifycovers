@@ -166,6 +166,28 @@ def callback():
         return redirect(url_for("index"))
     else:
         return "Could not get token"
+    
+def extract_playlist_id(user_input: str) -> str:
+    """
+    Given a user_input string that may be:
+      - A full URL like 'https://open.spotify.com/playlist/1l4roHQ43lYI3J9zbxExFf?si=...'
+      - or just a raw ID like '1l4roHQ43lYI3J9zbxExFf'
+    Return only the playlist ID (e.g. '1l4roHQ43lYI3J9zbxExFf').
+    """
+    user_input = user_input.strip()
+
+    # If it contains 'playlist/', extract everything after that
+    if "playlist/" in user_input:
+        # e.g. 'https://open.spotify.com/playlist/1l4roHQ43lYI3J9zbxExFf?si=...'
+        parts = user_input.split("playlist/")[1]  # everything after 'playlist/'
+        # If there's a '?' (query params), split that off
+        if "?" in parts:
+            parts = parts.split("?")[0]
+        return parts
+    else:
+        # Otherwise, assume it's already an ID
+        return user_input
+
 
 
 @app.route("/generate", methods=["POST"])
@@ -198,7 +220,8 @@ def generate():
     # =============== RESTORE OLD NAMING SCHEME ===============
     # 1) Get playlist name or "top_tracks"
     if mode == "playlist" and playlist_id:
-        playlist_info = sp.playlist(playlist_id)
+        real_id = extract_playlist_id(playlist_id)
+        playlist_info = sp.playlist(real_id)
         raw_name = playlist_info['name']
         playlist_name = raw_name.replace(" ", "_")
     else:
