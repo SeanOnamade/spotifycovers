@@ -84,7 +84,7 @@ def index():
                     </div>
 
                     <div class="mb-3">
-                      <label class="form-label">Playlist ID (if mode=playlist):</label>
+                      <label class="form-label">URL or Playlist ID (if mode=playlist):</label>
                       <input type="text" name="playlist_id" class="form-control"
                              placeholder="e.g. 37i9dQZF..." />
                     </div>
