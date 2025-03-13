@@ -5,13 +5,12 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from io import BytesIO
 from dotenv import load_dotenv
+from albumgrids import generate_album_grid  # your existing function
 
 load_dotenv()
 
-from albumgrids import generate_album_grid  # your existing function
-
 app = Flask(__name__)
-app.secret_key = "YOUR_FLASK_SECRET_KEY"
+app.secret_key = "YOUR_FLASK_SECRET_KEY" # is this line used?
 
 # Spotify credentials
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "YOUR_CLIENT_ID")
@@ -21,33 +20,54 @@ SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:5000/
 # Scopes needed
 SCOPE = "playlist-read-private user-top-read"
 
-
 @app.route("/")
 def index():
-    # If user not logged in, show a "Login with Spotify" link
+    # If user is not logged in, show a "Login with Spotify" link
     if "token_info" not in session:
         return render_template_string("""
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
           <head>
-            <!-- Bootstrap 5 via CDN -->
-            <link rel="stylesheet" 
-                  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-            <title>Welcome</title>
+            <meta charset="UTF-8">
+            <title>Album Grid App</title>
+            <!-- Bootswatch quartz Theme -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
+            <style>
+              .hero {
+                color: #fff;  /* Make text white to contrast the background */
+                padding: 2rem 2rem;
+                text-align: center;
+              }
+              .hero h1 {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+              }
+              .hero p {
+                font-size: 1.2rem;
+              }
+              .form-select {
+                cursor: pointer;
+              }
+            </style>
           </head>
-          <body class="bg-light">
-            <div class="container py-5">
-              <div class="row justify-content-center">
-                <div class="col-md-6">
-                  <div class="card shadow">
-                    <div class="card-body text-center">
-                      <h1>Welcome to the Album Grid App</h1>
-                      <p><a href="/login" class="btn btn-primary">Login with Spotify</a></p>
-                    </div>
-                  </div>
-                </div>
+          <body>
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+              <div class="container-fluid">
+                <a class="navbar-brand" href="/">Spotify Covers</a>
               </div>
+            </nav>
+
+            <div class="hero">
+              <h1>Welcome to the Album Grid App</h1>
+              <p class="mb-3">Generate beautiful collages from your Spotify playlists or top tracks.</p>
+              <a href="/login" class="btn btn-lg btn-success">Login with Spotify</a>
             </div>
+
+            <!-- Footer -->
+            <footer class="text-center py-2 mt-0 border-top">
+              <p class="text-muted mb-0">&copy; 2025 Spotify Covers</p>
+            </footer>
           </body>
         </html>
         """)
@@ -55,50 +75,79 @@ def index():
     # If logged in, show the form in a centered card
     return render_template_string("""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <meta charset="UTF-8">
         <title>Generate Album Grid</title>
+        <!-- Bootswatch quartz Theme -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
+        <style>
+          .hero {
+            background: linear-gradient(90deg, #ec008c, #fc6767);
+            color: #fff;  /* Make text white to contrast the background */
+            padding: 2rem;
+            text-align: center;
+          }
+          .form-select {
+            cursor: pointer;
+          }
+        </style>
         <script>
           function showLoading() {
-            // Show the progress bar when the form is submitted
             document.getElementById("loading").classList.remove("d-none");
           }
         </script>
       </head>
-      <body class="bg-light">
-        <div class="container py-5">
+      <body>
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="/">Spotify Covers</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                  <a class="nav-link" href="/logout">Logout</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+        <div class="container py-3">
           <div class="row justify-content-center">
             <div class="col-md-6">
+              <h2 class="text-center mb-3">Generate Album Grid</h2>
               <div class="card shadow">
                 <div class="card-body">
-                  <h1 class="card-title text-center">Generate Album Grid</h1>
                   <form action="/generate" method="post" onsubmit="showLoading()">
-                    <div class="mb-3">
-                      <label class="form-label">Mode:</label>
+                    <div class="mb-2">
+                      <label class="form-label fw-bold">Mode:</label>
                       <select name="mode" class="form-select">
                         <option value="playlist">Playlist</option>
                         <option value="top">Top Tracks</option>
                       </select>
                     </div>
 
-                    <div class="mb-3">
-                      <label class="form-label">URL or Playlist ID (if mode=playlist):</label>
+                    <div class="mb-2">
+                      <label class="form-label fw-bold">URL or Playlist ID (if mode=playlist):</label>
                       <input type="text" name="playlist_id" class="form-control"
-                             placeholder="e.g. 37i9dQZF..." />
+                             placeholder="e.g. https://open.spotify.com/playlist/..." />
                     </div>
 
-                    <div class="mb-3">
-                      <label class="form-label">Remove Duplicates?</label>
+                    <div class="mb-2">
+                      <label class="form-label fw-bold">Remove Duplicates?</label>
                       <select name="remove_dups" class="form-select">
                         <option value="no">No</option>
                         <option value="yes">Yes</option>
                       </select>
                     </div>
 
-                    <div class="mb-3">
-                      <label class="form-label">Pattern:</label>
+                    <div class="mb-2">
+                      <label class="form-label fw-bold">Pattern:</label>
                       <select name="pattern" class="form-select">
                         <option value="normal">Normal</option>
                         <option value="diagonal">Diagonal</option>
@@ -126,14 +175,19 @@ def index():
                     </div>
                     <p class="mt-2">Please wait while we generate your grid...</p>
                   </div>
-
-                  <hr>
-                  <p><a href="/logout" class="btn btn-secondary">Logout</a></p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Footer -->
+        <footer class="text-center py-2 mt-1 border-top">
+          <p class="text-muted mb-0">&copy; 2025 Spotify Covers</p>
+        </footer>
+
+        <!-- Bootstrap JS (for navbar toggler, etc.) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
       </body>
     </html>
     """)
@@ -260,14 +314,36 @@ def generate():
     # Render a preview page with the image in a card
     return render_template_string("""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <meta charset="UTF-8">
         <title>Your Grid</title>
+        <!-- Bootswatch quartz Theme -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
       </head>
-      <body class="bg-light">
-        <div class="container py-5">
+      <body>
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="/">Spotify Covers</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                  <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/logout">Logout</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+        <div class="container py-2">
           <div class="row justify-content-center">
             <div class="col-md-8">
               <div class="card shadow">
@@ -276,8 +352,7 @@ def generate():
                   <p class="text-muted">Right-click the image to save, or use the download link below.</p>
                   <img src="/preview" alt="album grid" class="img-fluid border" />
                   <br><br>
-                  <a href="/download" class="btn btn-primary"
-                     download="{{ filename }}">Download PNG</a>
+                  <a href="/download" class="btn btn-success" download="{{ filename }}">Download PNG</a>
                   <br><br>
                   <a href="/" class="btn btn-secondary">Back to Home</a>
                 </div>
@@ -285,6 +360,14 @@ def generate():
             </div>
           </div>
         </div>
+
+        <!-- Footer -->
+        <footer class="text-center py-2 mt-1 border-top">
+          <p class="text-muted mb-0">&copy; 2025 Spotify Covers</p>
+        </footer>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
       </body>
     </html>
     """, filename=session["generated_image_name"])
