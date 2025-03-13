@@ -10,12 +10,21 @@ from albumgrids import generate_album_grid  # your existing function
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "YOUR_FLASK_SECRET_KEY" # is this line used?
+app.secret_key = "YOUR_FLASK_SECRET_KEY" # ?
+
+IS_PRODUCTION = "RAILWAY_STATIC_URL" in os.environ  # Adjust if using a different host
 
 # Spotify credentials
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "YOUR_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "YOUR_CLIENT_SECRET")
-SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:5000/callback")
+
+# SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:5000/callback")
+
+# Dynamically set the redirect URI
+if IS_PRODUCTION:
+    SPOTIFY_REDIRECT_URI = "https://spotifycovers-production.up.railway.app/callback"
+else:
+    SPOTIFY_REDIRECT_URI = "http://127.0.0.1:5000/callback"
 
 # Scopes needed
 SCOPE = "playlist-read-private user-top-read"
@@ -32,6 +41,8 @@ def index():
             <title>Album Grid App</title>
             <!-- Bootswatch quartz Theme -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
+            <!-- Google Font -->
+            <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
             <style>
               .hero {
                 color: #fff;  /* Make text white to contrast the background */
@@ -48,6 +59,10 @@ def index():
               .form-select {
                 cursor: pointer;
               }
+              .navbar {
+                font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                font-weight: bold;
+}
             </style>
           </head>
           <body>
@@ -81,6 +96,8 @@ def index():
         <title>Generate Album Grid</title>
         <!-- Bootswatch quartz Theme -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
         <style>
           .hero {
             background: linear-gradient(90deg, #ec008c, #fc6767);
@@ -91,6 +108,10 @@ def index():
           .form-select {
             cursor: pointer;
           }
+          .navbar {
+            font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            font-weight: bold;
+}
         </style>
         <script>
           function showLoading() {
@@ -320,6 +341,8 @@ def generate():
         <title>Your Grid</title>
         <!-- Bootswatch quartz Theme -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
       </head>
       <body>
         <!-- Navbar -->
