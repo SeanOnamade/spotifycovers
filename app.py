@@ -6,6 +6,7 @@ from spotipy.oauth2 import SpotifyOAuth
 from io import BytesIO
 from dotenv import load_dotenv
 from albumgrids import generate_album_grid  # your existing function
+from flask import send_from_directory
 
 load_dotenv()
 
@@ -439,6 +440,10 @@ def logout():
     session.pop("generated_image_path", None)
     session.pop("generated_image_name", None)
     return redirect(url_for("index"))
+
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory(os.path.abspath(os.path.dirname(__file__)), "sitemap.xml", mimetype="application/xml")
 
 
 if __name__ == "__main__":
