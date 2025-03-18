@@ -11,6 +11,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "YOUR_FLASK_SECRET_KEY" # ?
+# don't think I need this
 
 IS_PRODUCTION = "RAILWAY_STATIC_URL" in os.environ  # Adjust if using a different host
 
@@ -38,7 +39,8 @@ def index():
         <html lang="en">
           <head>
             <meta charset="UTF-8">
-            <title>Album Grid App</title>
+            <title>Spotify Covers - Create Stunning Album Grids</title>
+            <meta name="description" content="Generate beautiful Spotify album cover grids from your playlists or top tracks. Login with Spotify and create your unique collage now!">
             <!-- Bootswatch quartz Theme -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
             <!-- Google Font -->
@@ -93,7 +95,20 @@ def index():
     <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <title>Generate Album Grid</title>
+        <title>Spotify Covers - Create Stunning Album Grids</title>
+        <meta name="description" content="Generate beautiful Spotify album cover grids from your playlists or top tracks. Login with Spotify and create your unique collage now!">
+                                  
+        <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Spotify Covers",
+        "url": "https://spotifycovers-production.up.railway.app/",
+        "description": "Generate stunning Spotify album cover grids from your playlists or top tracks.",
+        "applicationCategory": "Music"
+        }
+        </script>
+
         <!-- Bootswatch quartz Theme -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
         <!-- Google Font -->
