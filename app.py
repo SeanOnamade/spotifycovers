@@ -230,6 +230,7 @@ def index():
                       </div>
                     </div>
                     <p class="mt-2">Please wait while we generate your grid...</p>
+                    <p class="mt-2">May take up to a minute depending on songlist size...</p>
                   </div>
                 </div>
               </div>
