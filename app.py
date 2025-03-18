@@ -43,6 +43,15 @@ def index():
             <title>Spotify Covers - Create Stunning Album Grids</title>
             <meta name="description" content="Generate beautiful Spotify album cover grids from your playlists or top tracks. Login with Spotify and create your unique collage now!">
             <meta name="google-site-verification" content="Bb23Njg1oKFgYtGMT3MR_MWG7-MgTFpKymCYPafltpo" />
+            <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYRLRLLH5X"></script>
+            <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              gtag('config', 'G-HYRLRLLH5X');
+            </script>
             <!-- Bootswatch quartz Theme -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
             <!-- Google Font -->
@@ -100,7 +109,15 @@ def index():
         <title>Spotify Covers - Create Stunning Album Grids</title>
         <meta name="description" content="Generate beautiful Spotify album cover grids from your playlists or top tracks. Login with Spotify and create your unique collage now!">
         <meta name="google-site-verification" content="Bb23Njg1oKFgYtGMT3MR_MWG7-MgTFpKymCYPafltpo" />
-                                  
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYRLRLLH5X"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-HYRLRLLH5X');
+        </script>
         <script type="application/ld+json">
         {
         "@context": "https://schema.org",
@@ -357,6 +374,15 @@ def generate():
       <head>
         <meta charset="UTF-8">
         <title>Your Grid</title>
+        <!-- Google tag (gtag.js) -->
+          <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYRLRLLH5X"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-HYRLRLLH5X');
+          </script>
         <!-- Bootswatch quartz Theme -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/quartz/bootstrap.min.css">
         <!-- Google Font -->
