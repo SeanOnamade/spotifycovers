@@ -43,6 +43,7 @@ def index():
             <title>Spotify Covers - Create Stunning Album Grids</title>
             <meta name="description" content="Generate beautiful Spotify album cover grids from your playlists or top tracks. Login with Spotify and create your unique collage now!">
             <meta name="google-site-verification" content="Bb23Njg1oKFgYtGMT3MR_MWG7-MgTFpKymCYPafltpo" />
+            <link rel="icon" href="{{ url_for('favicon') }}" type="image/png">
             <!-- Google tag (gtag.js) -->
             <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYRLRLLH5X"></script>
             <script>
@@ -110,6 +111,7 @@ def index():
         <meta name="description" content="Generate beautiful Spotify album cover grids from your playlists or top tracks. Login with Spotify and create your unique collage now!">
         <meta name="google-site-verification" content="Bb23Njg1oKFgYtGMT3MR_MWG7-MgTFpKymCYPafltpo" />
         <!-- Google tag (gtag.js) -->
+        <link rel="icon" href="{{ url_for('favicon') }}" type="image/png">
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYRLRLLH5X"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
@@ -375,6 +377,7 @@ def generate():
       <head>
         <meta charset="UTF-8">
         <title>Your Grid</title>
+        <link rel="icon" href="{{ url_for('favicon') }}" type="image/png">
         <!-- Google tag (gtag.js) -->
           <script async src="https://www.googletagmanager.com/gtag/js?id=G-HYRLRLLH5X"></script>
           <script>
@@ -472,6 +475,13 @@ def logout():
 def sitemap():
     return send_from_directory(os.path.abspath(os.path.dirname(__file__)), "sitemap.xml", mimetype="application/xml")
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'spotify.png',  # or 'favicon.ico'
+        mimetype='image/png'  # or 'image/x-icon'
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
