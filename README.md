@@ -2,12 +2,13 @@
 
 Generate stunning album cover grid collages from your Spotify playlists or top tracks.
 
-![Normal grid example](static/Party_Songs_13x13_spiral.png)
+![Normal grid example](static/Studying_%28instrumentals%29_10x10_normal.png)
 
 ## Features
 
 - **Playlist or Top Tracks** — generate grids from any playlist URL or your personal top tracks
 - **Time range** — choose Last 4 Weeks, Last 6 Months, or All Time for top tracks
+- **Custom grid size** — for top tracks, manually set the grid size (e.g. 10 for 10x10). Leave blank to auto-size. Errors gracefully if you don't have enough unique covers
 - **4 grid patterns** — Normal, Diagonal, Spiral, Checkered
 - **Resolution control** — Standard (100px), High (200px), Ultra (300px) per cell
 - **Rounded corners** — apply rounded corners to the entire grid (transparent PNG)
@@ -18,9 +19,9 @@ Generate stunning album cover grid collages from your Spotify playlists or top t
 
 ## Examples
 
-| Normal | Diagonal | Spiral |
-|--------|----------|--------|
-| ![Normal](static/Studying_%28instrumentals%29_10x10_normal.png) | ![Diagonal](static/New_Vibe_10x10_diagonal.png) | ![Spiral](static/Party_Songs_13x13_spiral.png) |
+| Normal | Diagonal | Spiral | Checkered |
+|--------|----------|--------|-----------|
+| ![Normal](static/Studying_%28instrumentals%29_10x10_normal.png) | ![Diagonal](static/New_Vibe_10x10_diagonal.png) | ![Spiral](static/top_tracks_10x10_spiral.png) | ![Checkered](static/top_tracks_10x10_checkered.png) |
 
 ## Getting Started
 
@@ -32,7 +33,7 @@ Generate stunning album cover grid collages from your Spotify playlists or top t
 ### Setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/spotifycovers.git
+git clone https://github.com/SeanOnamade/spotifycovers.git
 cd spotifycovers
 python -m venv venv
 source venv/Scripts/activate   # Windows (Git Bash)

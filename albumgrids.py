@@ -177,7 +177,8 @@ def add_frame(image, padding_ratio=0.04, bg_color=(18, 18, 18), corner_radius_ra
 
 def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False,
                         pattern="normal", time_range="medium_term", cell_size=100,
-                        rounded=False, framed=False, progress_callback=None):
+                        rounded=False, framed=False, grid_size_override=None,
+                        progress_callback=None):
     """
     Main function to generate the album grid image (as a PIL Image object).
     :param sp: Spotipy client
@@ -189,6 +190,7 @@ def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False
     :param cell_size: pixel size of each grid cell (default 100)
     :param rounded: bool to apply rounded corners to each cell
     :param framed: bool to add a dark rounded frame around the final image
+    :param grid_size_override: optional int to force a specific grid size (e.g. 10 for 10x10)
     :param progress_callback: optional callable(current, total, message)
     :return: A PIL Image object with the final collage
     """
@@ -216,7 +218,16 @@ def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False
         album_entries = remove_duplicates(album_entries)
 
     num_images = len(album_entries)
-    grid_size = calculate_grid_size(num_images)
+    if grid_size_override:
+        needed = grid_size_override * grid_size_override
+        if num_images < needed:
+            raise ValueError(
+                f"Not enough unique covers for a {grid_size_override}\u00d7{grid_size_override} grid. "
+                f"Found {num_images} but need {needed}. Try a smaller grid size."
+            )
+        grid_size = grid_size_override
+    else:
+        grid_size = calculate_grid_size(num_images)
     report(0, 1, f"{num_images} unique covers \u2192 {grid_size}\u00d7{grid_size} grid.")
 
     album_urls = [url for _, url in album_entries[:grid_size * grid_size]]

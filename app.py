@@ -349,6 +349,15 @@ def index():
                         </select>
                       </div>
 
+                      <div class="mb-3" id="grid-size-field" style="display:none;">
+                        <label class="form-label">Grid Size (optional)</label>
+                        <input type="number" name="grid_size" class="form-control"
+                               placeholder="Auto" min="1" max="50" />
+                        <div style="font-size:0.78rem; color:var(--sp-dim); margin-top:4px;">
+                          Leave blank to auto-size, or set e.g. 10 for a 10&times;10 grid.
+                        </div>
+                      </div>
+
                       <div class="mb-3">
                         <label class="form-label">Remove Duplicates</label>
                         <select name="remove_dups" class="form-select">
@@ -416,11 +425,13 @@ def index():
           const modeSelect = document.getElementById('mode-select');
           const playlistField = document.getElementById('playlist-field');
           const timeRangeField = document.getElementById('time-range-field');
+          const gridSizeField = document.getElementById('grid-size-field');
 
           function updateModeFields() {
             const isTop = modeSelect.value === 'top';
             playlistField.style.display = isTop ? 'none' : '';
             timeRangeField.style.display = isTop ? '' : 'none';
+            gridSizeField.style.display = isTop ? '' : 'none';
           }
           modeSelect.addEventListener('change', updateModeFields);
           updateModeFields();
@@ -563,6 +574,10 @@ def generate():
         cell_size = 100
     rounded = (request.form.get("rounded", "no") == "yes")
     framed = (request.form.get("framed", "no") == "yes")
+    grid_size_str = request.form.get("grid_size", "").strip()
+    grid_size_override = int(grid_size_str) if grid_size_str else None
+    if grid_size_override is not None:
+        grid_size_override = max(1, min(50, grid_size_override))
 
     sp = spotipy.Spotify(auth=token_info["access_token"])
 
@@ -616,6 +631,7 @@ def generate():
                 cell_size=cell_size,
                 rounded=rounded,
                 framed=framed,
+                grid_size_override=grid_size_override,
                 progress_callback=on_progress,
             )
 
