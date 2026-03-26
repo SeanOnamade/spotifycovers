@@ -36,12 +36,12 @@ def fetch_playlist_tracks(sp, playlist_id):
         offset += limit
     return tracks
 
-def fetch_top_tracks(sp):
+def fetch_top_tracks(sp, time_range="medium_term"):
     tracks = []
     offset = 0
     limit = 50
     while True:
-        results = sp.current_user_top_tracks(limit=limit, offset=offset, time_range="medium_term")
+        results = sp.current_user_top_tracks(limit=limit, offset=offset, time_range=time_range)
         tracks.extend(results['items'])
         if len(results['items']) < limit:
             break
@@ -49,19 +49,27 @@ def fetch_top_tracks(sp):
     return tracks
 
 def get_album_art_from_tracks(tracks):
-    album_urls = []
+    results = []
     for item in tracks:
         try:
-            # If playlist track, item['track']...
-            album_url = item['track']['album']['images'][0]['url'] if 'track' in item else item['album']['images'][0]['url']
-            album_urls.append(album_url)
+            album = item['track']['album'] if 'track' in item else item['album']
+            album_id = album['id']
+            album_url = album['images'][0]['url']
+            results.append((album_id, album_url))
         except (TypeError, KeyError, IndexError):
             continue
-    return album_urls
+    return results
 
-def remove_duplicates(album_urls):
-    unique_urls = list(dict.fromkeys(album_urls))
-    return unique_urls
+def remove_duplicates(album_entries):
+    seen_ids = set()
+    seen_urls = set()
+    unique = []
+    for album_id, url in album_entries:
+        if album_id not in seen_ids and url not in seen_urls:
+            seen_ids.add(album_id)
+            seen_urls.add(url)
+            unique.append((album_id, url))
+    return unique
 
 def get_dominant_color(image):
     image = image.convert("RGB").resize((1, 1))
@@ -72,8 +80,26 @@ def download_image(url):
     response = requests.get(url)
     return Image.open(BytesIO(response.content))
 
-def create_normal_grid(images, grid_size):
-    cell_size = 100 # 64?
+def image_hash(img, size=8):
+    """Compute a difference hash for visual dedup."""
+    small = img.convert("L").resize((size + 1, size), Image.LANCZOS)
+    pixels = list(small.getdata())
+    bits = []
+    for row in range(size):
+        for col in range(size):
+            bits.append(pixels[row * (size + 1) + col] < pixels[row * (size + 1) + col + 1])
+    return tuple(bits)
+
+def round_image(img, radius):
+    from PIL import ImageDraw
+    result = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    mask = Image.new("L", img.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rounded_rectangle([0, 0, img.size[0]-1, img.size[1]-1], radius=radius, fill=255)
+    result.paste(img.convert("RGB"), mask=mask)
+    return result
+
+def create_normal_grid(images, grid_size, cell_size=100):
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     for idx, img in enumerate(images):
         row = idx // grid_size
@@ -82,8 +108,7 @@ def create_normal_grid(images, grid_size):
         grid_img.paste(img_resized, (col * cell_size, row * cell_size))
     return grid_img
 
-def create_diagonal_grid(images, grid_size):
-    cell_size = 100
+def create_diagonal_grid(images, grid_size, cell_size=100):
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     idx = 0
     for diag in range(2 * grid_size - 1):
@@ -95,19 +120,18 @@ def create_diagonal_grid(images, grid_size):
                 idx += 1
     return grid_img
 
-def create_checkered_grid(images, grid_size):
-    cell_size = 100
+def create_checkered_grid(images, grid_size, cell_size=100):
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
-    for idx, img in enumerate(images):
-        row = idx // grid_size
-        col = idx % grid_size
-        if (row + col) % 2 == 0:
-            img_resized = img.resize((cell_size, cell_size))
-            grid_img.paste(img_resized, (col * cell_size, row * cell_size))
+    idx = 0
+    for row in range(grid_size):
+        for col in range(grid_size):
+            if (row + col) % 2 == 0 and idx < len(images):
+                img_resized = images[idx].resize((cell_size, cell_size))
+                grid_img.paste(img_resized, (col * cell_size, row * cell_size))
+                idx += 1
     return grid_img
 
-def create_spiral_grid(images, grid_size):
-    cell_size = 100
+def create_spiral_grid(images, grid_size, cell_size=100):
     grid_img = Image.new('RGB', (cell_size * grid_size, cell_size * grid_size))
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     direction_idx = 0
@@ -128,7 +152,32 @@ def create_spiral_grid(images, grid_size):
         x, y = x + dx, y + dy
     return grid_img
 
-def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False, pattern="normal"):
+def add_frame(image, padding_ratio=0.04, bg_color=(18, 18, 18), corner_radius_ratio=0.03):
+    from PIL import ImageDraw
+    w, h = image.size
+    pad = max(int(max(w, h) * padding_ratio), 8)
+    inner_radius = max(int(max(w, h) * corner_radius_ratio), 6)
+    new_w, new_h = w + 2 * pad, h + 2 * pad
+    outer_radius = inner_radius + pad
+
+    framed = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+
+    bg = Image.new("RGBA", (new_w, new_h), (*bg_color, 255))
+    outer_mask = Image.new("L", (new_w, new_h), 0)
+    draw_outer = ImageDraw.Draw(outer_mask)
+    draw_outer.rounded_rectangle([0, 0, new_w - 1, new_h - 1], radius=outer_radius, fill=255)
+    framed.paste(bg, mask=outer_mask)
+
+    inner_mask = Image.new("L", (w, h), 0)
+    draw_inner = ImageDraw.Draw(inner_mask)
+    draw_inner.rounded_rectangle([0, 0, w - 1, h - 1], radius=inner_radius, fill=255)
+    framed.paste(image.convert("RGBA"), (pad, pad), inner_mask)
+
+    return framed
+
+def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False,
+                        pattern="normal", time_range="medium_term", cell_size=100,
+                        rounded=False, framed=False, progress_callback=None):
     """
     Main function to generate the album grid image (as a PIL Image object).
     :param sp: Spotipy client
@@ -136,49 +185,89 @@ def generate_album_grid(sp, mode="playlist", playlist_id=None, remove_dups=False
     :param playlist_id: if 'playlist' mode, pass a valid playlist_id
     :param remove_dups: bool to remove duplicate covers
     :param pattern: one of ['normal','diagonal','spiral','checkered']
+    :param time_range: one of ['short_term','medium_term','long_term'] (top tracks only)
+    :param cell_size: pixel size of each grid cell (default 100)
+    :param rounded: bool to apply rounded corners to each cell
+    :param framed: bool to add a dark rounded frame around the final image
+    :param progress_callback: optional callable(current, total, message)
     :return: A PIL Image object with the final collage
     """
+    def report(current, total, message):
+        if progress_callback:
+            progress_callback(current, total, message)
+
+    report(0, 1, "Fetching tracks from Spotify...")
+
     if mode == 'playlist':
         tracks = fetch_playlist_tracks(sp, playlist_id)
-    else:  # 'top'
-        tracks = fetch_top_tracks(sp)
+    else:
+        tracks = fetch_top_tracks(sp, time_range=time_range)
 
-    album_urls = get_album_art_from_tracks(tracks)
+    album_entries = get_album_art_from_tracks(tracks)
     MAX_COVERS = 300
-    album_urls = album_urls[:MAX_COVERS]
-    if not album_urls:
+    album_entries = album_entries[:MAX_COVERS]
+    if not album_entries:
         raise ValueError("No album art found.")
 
+    total_tracks = len(album_entries)
+    report(0, 1, f"Found {total_tracks} tracks.")
+
     if remove_dups:
-        album_urls = remove_duplicates(album_urls)
+        album_entries = remove_duplicates(album_entries)
 
-    num_images = len(album_urls)
+    num_images = len(album_entries)
     grid_size = calculate_grid_size(num_images)
+    report(0, 1, f"{num_images} unique covers \u2192 {grid_size}\u00d7{grid_size} grid.")
 
-    # Download images and compute dominant colors
+    album_urls = [url for _, url in album_entries[:grid_size * grid_size]]
+    total_downloads = len(album_urls)
+
     images = []
     colors = []
-    for url in album_urls[:grid_size * grid_size]:  # limit to fill the grid exactly
+    seen_hashes = set()
+    for i, url in enumerate(album_urls):
+        report(i, total_downloads, f"Downloading cover {i + 1} of {total_downloads}...")
         try:
             img = download_image(url)
+            if remove_dups:
+                h = image_hash(img)
+                if h in seen_hashes:
+                    continue
+                seen_hashes.add(h)
             images.append(img)
             colors.append(get_dominant_color(img))
         except Exception as e:
             print(f"Error downloading {url}: {e}")
 
-    # Sort by hue
+    report(total_downloads, total_downloads, "Sorting by color...")
+
     sorted_indices = np.argsort([c[0] for c in colors])
     images = [images[i] for i in sorted_indices]
 
-    if pattern == 'diagonal':
-        grid_image = create_diagonal_grid(images, grid_size)
-    elif pattern == 'spiral':
-        grid_image = create_spiral_grid(images, grid_size)
-    elif pattern == 'checkered':
-        grid_image = create_checkered_grid(images, grid_size)
-    else:
-        grid_image = create_normal_grid(images, grid_size)
+    grid_size = calculate_grid_size(len(images))
+    images = images[:grid_size * grid_size]
 
+    report(total_downloads, total_downloads, "Building grid...")
+
+    if pattern == 'diagonal':
+        grid_image = create_diagonal_grid(images, grid_size, cell_size)
+    elif pattern == 'spiral':
+        grid_image = create_spiral_grid(images, grid_size, cell_size)
+    elif pattern == 'checkered':
+        grid_image = create_checkered_grid(images, grid_size, cell_size)
+    else:
+        grid_image = create_normal_grid(images, grid_size, cell_size)
+
+    if rounded:
+        report(total_downloads, total_downloads, "Rounding corners...")
+        radius = max(1, grid_image.width // 20)
+        grid_image = round_image(grid_image, radius)
+
+    if framed:
+        report(total_downloads, total_downloads, "Adding frame...")
+        grid_image = add_frame(grid_image)
+
+    report(total_downloads, total_downloads, "Done!")
     return grid_image
 
 
