@@ -16,13 +16,13 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-me")
 
-IS_PRODUCTION = "RAILWAY_STATIC_URL" in os.environ
+IS_PRODUCTION = "RENDER" in os.environ
 
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "YOUR_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "YOUR_CLIENT_SECRET")
 
 if IS_PRODUCTION:
-    SPOTIFY_REDIRECT_URI = "https://spotifycovers-production.up.railway.app/callback"
+    SPOTIFY_REDIRECT_URI = "https://spotifycovers.onrender.com/callback"
 else:
     SPOTIFY_REDIRECT_URI = "http://127.0.0.1:5000/callback"
 
