@@ -206,6 +206,23 @@ def prune_stale_tasks():
 
 @app.route("/")
 def index():
+    if "token_info" in session:
+        sp_oauth = SpotifyOAuth(
+            client_id=SPOTIFY_CLIENT_ID,
+            client_secret=SPOTIFY_CLIENT_SECRET,
+            redirect_uri=SPOTIFY_REDIRECT_URI,
+            scope=SCOPE
+        )
+        try:
+            token_info = sp_oauth.validate_token(session["token_info"])
+            if not token_info:
+                token_info = sp_oauth.refresh_access_token(session["token_info"]["refresh_token"])
+            session["token_info"] = token_info
+        except Exception:
+            # Refresh token is invalid/expired (e.g. invalid_grant):
+            # discard it so the user sees the login screen instead of a broken session.
+            session.pop("token_info", None)
+
     if "token_info" not in session:
         return render_template_string("""
         <!DOCTYPE html>
